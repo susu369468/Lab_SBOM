@@ -1,0 +1,56 @@
+name: Keyless Artifact Signing with Cosign
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-sign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4 
+
+      - name: Package Release Artifact
+        run: |
+          tar -czvf release.tar.gz app.py
+          sha256sum release.tar.gz > release.tar.gz.sha256
+          echo "Đã đóng gói tệp release.tar.gz thành công."
+
+      - name: Install Sigstore Cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Sign Artifact Keylessly
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign sign-blob \
+            --output-signature release.tar.gz.sig \
+            --output-certificate release.tar.gz.pem \
+            release.tar.gz
+          echo "Ký số Keyless thành công!"
+
+      - name: Verify Signed Artifact
+        run: |
+          cosign verify-blob \
+            --certificate release.tar.gz.pem \
+            --signature release.tar.gz.sig \
+            --certificate-identity "https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/.github/workflows/cosign-sign.yml@refs/tags/${{ github.ref_name }}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            release.tar.gz
+
+      - name: Upload Signed Artifacts Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-signed-package
+          path: |
+            release.tar.gz
+            release.tar.gz.sig
+            release.tar.gz.pem
+            release.tar.gz.sha256
