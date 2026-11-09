@@ -40,7 +40,7 @@ jobs:
           cosign verify-blob \
             --certificate release.tar.gz.pem \
             --signature release.tar.gz.sig \
-            --certificate-identity-regex "^https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/.github/workflows/cosign-sign.yml@refs/tags/v.*" \
+            --certificate-identity-regexp "^https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/.github/workflows/cosign-sign.yml@refs/tags/v.*" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             release.tar.gz
 
