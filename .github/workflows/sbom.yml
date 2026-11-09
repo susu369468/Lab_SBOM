@@ -31,7 +31,7 @@ jobs:
         uses: anchore/scan-action@v3
         with:
           sbom: sbom.cyclonedx.json
-          fail-build: false
+          fail-build: false # Bắt buộc phải là false để không làm hỏng workflow khi thấy CVE
 
       - name: Upload SBOM Artifacts
         uses: actions/upload-artifact@v4

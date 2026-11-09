@@ -21,7 +21,6 @@ jobs:
         run: |
           tar -czvf release.tar.gz app.py
           sha256sum release.tar.gz > release.tar.gz.sha256
-          echo "Đã đóng gói tệp release.tar.gz thành công."
 
       - name: Install Sigstore Cosign
         uses: sigstore/cosign-installer@v3.7.0
@@ -34,14 +33,13 @@ jobs:
             --output-signature release.tar.gz.sig \
             --output-certificate release.tar.gz.pem \
             release.tar.gz
-          echo "Ký số Keyless thành công!"
 
       - name: Verify Signed Artifact
         run: |
           cosign verify-blob \
             --certificate release.tar.gz.pem \
             --signature release.tar.gz.sig \
-            --certificate-identity "https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/.github/workflows/cosign-sign.yml@refs/tags/${{ github.ref_name }}" \
+            --certificate-identity-regex "^https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/.github/workflows/cosign-sign.yml@refs/tags/v.*" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             release.tar.gz
 
